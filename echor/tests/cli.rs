@@ -15,9 +15,28 @@ fn dies_no_args() -> TestResult {
 
 #[test]
 fn hello1() -> TestResult {
-    let expected = fs::read_to_string("tests/expected/hello1.txt")?; // ?演算子はResult型またはOption型を返す関数でのみ使用できる。
+    run(&["Hello there"], "tests/expected/hello1.txt")
+}
+
+#[test]
+fn hello2() -> TestResult {
+    run(&["Hello", "there"], "tests/expected/hello2.txt")
+}
+
+#[test]
+fn hello1_no_new_line() -> TestResult {
+    run(&["Hello  there", "-n"], "tests/expected/hello1.n.txt")
+}
+
+#[test]
+fn hello2_no_new_line() -> TestResult {
+    run(&["-n", "Hello", "there"], "tests/expected/hello2.n.txt")
+}
+
+fn run(args: &[&str], expected_file: &str) -> TestResult {
+    let expected = fs::read_to_string(expected_file)?;
     Command::cargo_bin("echor")?
-        .arg("Hello there")
+        .args(args)
         .assert()
         .success()
         .stdout(expected);
