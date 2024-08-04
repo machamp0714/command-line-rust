@@ -1,5 +1,7 @@
 use clap::{App, Arg};
 use std::error::Error;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -12,9 +14,18 @@ pub struct Config {
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
 pub fn run(config: Config) -> MyResult<()> {
-    // ()はユニット型
-    dbg!(config);
-    Ok(())
+    for filename in config.files {
+        match open(&filename) {
+            Err(err) => eprintln!("Failed to open {}: {}", filename, err),
+            Ok(file) => {
+                for line_result in file.lines() {
+                    let line = line_result?;
+                    println!("{}", line);
+                }
+            }
+        }
+    }
+    Ok(()) // ()はユニット型
 }
 
 pub fn get_args() -> MyResult<Config> {
@@ -50,9 +61,18 @@ pub fn get_args() -> MyResult<Config> {
     let number_lines = matches.is_present("number");
     let number_nonblank_lines = matches.is_present("number_nonblank");
 
-    Ok(Config {
+    let config = Config {
         files,
         number_lines,
         number_nonblank_lines,
-    })
+    };
+
+    Ok(config)
+}
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
 }
