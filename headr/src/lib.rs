@@ -49,9 +49,27 @@ pub fn get_args() -> MyResult<Config> {
 
     let config = Config {
         files,
-        count: String::from(count),
-        bytes: String::from(bytes)
+        count: count.to_string(),
+        bytes: bytes.to_string()
     };
 
     Ok(config)
+}
+
+fn parse_positive_int(val: &str) -> MyResult<usize> {
+    match val.parse() {
+        Ok(n) if n > 0 => Ok(n),
+        _ => Err(From::from(val)), // Err(val.into()) or Err(Into::into(val))
+    }
+}
+
+#[test]
+fn test_parse_positive_int() {
+    let res = parse_positive_int("3");
+    assert!(res.is_ok());
+    assert_eq!(res.unwrap(), 3);
+
+    let res = parse_positive_int("foo");
+    assert!(res.is_err());
+    assert_eq!(res.unwrap_err().to_string(), "foo".to_string())
 }
