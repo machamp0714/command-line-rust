@@ -61,7 +61,7 @@ pub fn get_args() -> MyResult<Config> {
     let config = Config {
         files,
         lines: lines.unwrap(),
-        bytes: bytes
+        bytes
     };
 
     Ok(config)
