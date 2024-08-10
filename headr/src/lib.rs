@@ -2,10 +2,11 @@ use clap::{Arg, App};
 use std::error::Error;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Config {
     files: Vec<String>,
-    count: String,
-    bytes: String,
+    lines: usize,
+    bytes: Option<usize>,
 }
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
@@ -44,13 +45,23 @@ pub fn get_args() -> MyResult<Config> {
         .get_matches();
 
     let files  = matches.values_of_lossy("files").unwrap();
-    let count = matches.value_of("count").unwrap();
-    let bytes = matches.value_of("bytes").unwrap();
+
+    let lines = matches
+        .value_of("lines")
+        .map(parse_positive_int)
+        .transpose()
+        .map_err(|e| format!("illegal line count -- {}", e))?;
+
+    let bytes = matches
+        .value_of("bytes")
+        .map(parse_positive_int)
+        .transpose()
+        .map_err(|e| format!("illegal byte count -- {}", e))?;
 
     let config = Config {
         files,
-        count: count.to_string(),
-        bytes: bytes.to_string()
+        lines: lines.unwrap(),
+        bytes: bytes
     };
 
     Ok(config)
