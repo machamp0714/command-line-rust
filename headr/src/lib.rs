@@ -17,15 +17,20 @@ pub fn run(config: Config) -> MyResult<()> {
     for filename in config.files {
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
-            Ok(file) => {
+            Ok(mut file) => {
                 match config.bytes {
                     Some(bytes) => {
                         println!("{}", bytes)
                     },
                     None => {
-                        let lines = file.lines().take(config.lines);
-                        for line in lines {
-                            println!("{}", line?)
+                        let mut line = String::new();
+                        for _ in 0..config.lines {
+                            let bytes = file.read_line(&mut line)?;
+                            if bytes == 0 {
+                                break;
+                            }
+                            print!("{}", line);
+                            line.clear();
                         }
                     }
                 }
