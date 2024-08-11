@@ -14,25 +14,22 @@ pub struct Config {
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
 pub fn run(config: Config) -> MyResult<()> {
-    for filename in config.files {
-        match open(&filename) {
+    for (index, filename) in config.files.iter().enumerate() {
+        match open(filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(mut file) => {
-                match config.bytes {
-                    Some(bytes) => {
-                        println!("{}", bytes)
-                    },
-                    None => {
-                        let mut line = String::new();
-                        for _ in 0..config.lines {
-                            let bytes = file.read_line(&mut line)?;
-                            if bytes == 0 {
-                                break;
-                            }
-                            print!("{}", line);
-                            line.clear();
-                        }
+                if config.files.len() > 1 {
+                    let prefix = if index == 0 { "" } else { "\n" };
+                    println!("{}==> {} <==", prefix, filename);
+                }
+
+                for _ in 0..config.lines {
+                    let mut line = String::new();
+                    let bytes = file.read_line(&mut line)?;
+                    if bytes == 0 {
+                        break;
                     }
+                    print!("{}", line);
                 }
             }
         }
