@@ -18,8 +18,16 @@ pub fn run(config: Config) -> MyResult<()> {
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
-                for line in file.lines() {
-                    println!("{}", line.unwrap());
+                match config.bytes {
+                    Some(bytes) => {
+                        println!("{}", bytes)
+                    },
+                    None => {
+                        let lines = file.lines().take(config.lines);
+                        for line in lines {
+                            println!("{}", line?)
+                        }
+                    }
                 }
             }
         }
@@ -44,13 +52,14 @@ pub fn get_args() -> MyResult<Config> {
                 .long("lines")
                 .value_name("LINES")
                 .default_value("10")
-                .conflicts_with("bytes")
                 .help("Print count lines of each of the specified files.")
         )
         .arg(
             Arg::with_name("bytes")
                 .short("c")
                 .long("bytes")
+                .takes_value(true)
+                .conflicts_with("lines")
                 .help("Print bytes of each of the specified files.")
         )
         .get_matches();
