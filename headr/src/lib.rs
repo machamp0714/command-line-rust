@@ -23,13 +23,33 @@ pub fn run(config: Config) -> MyResult<()> {
                     println!("{}==> {} <==", prefix, filename);
                 }
 
-                for _ in 0..config.lines {
-                    let mut line = String::new();
-                    let bytes = file.read_line(&mut line)?;
-                    if bytes == 0 {
-                        break;
+                match config.bytes {
+                    Some(mut bytes) => {
+                        loop {
+                            let mut line = String::new();
+                            let bytes_read = file.read_line(&mut line)?;
+                            let line_bytes = line.bytes().take(bytes).collect::<Vec<u8>>();
+                            print!("{}", String::from_utf8_lossy(&line_bytes));
+                            line.clear();
+
+                            if bytes < bytes_read || bytes_read == 0 {
+                                break;
+                            } else {
+                                bytes -= bytes_read;
+                            }
+                        }
+                    },
+                    None => {
+                        for _ in 0..config.lines {
+                            let mut line = String::new();
+                            let bytes = file.read_line(&mut line)?;
+                            if bytes == 0 {
+                                break;
+                            }
+                            print!("{}", line);
+                            line.clear();
+                        }
                     }
-                    print!("{}", line);
                 }
             }
         }
