@@ -1,6 +1,6 @@
 use clap::{Arg, App};
 use std::error::Error;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Read};
 use std::fs::File;
 
 #[derive(Debug)]
@@ -24,20 +24,15 @@ pub fn run(config: Config) -> MyResult<()> {
                 }
 
                 match config.bytes {
-                    Some(mut bytes) => {
-                        loop {
-                            let mut line = String::new();
-                            let bytes_read = file.read_line(&mut line)?;
-                            let line_bytes = line.bytes().take(bytes).collect::<Vec<u8>>();
-                            print!("{}", String::from_utf8_lossy(&line_bytes));
-                            line.clear();
+                    Some(bytes) => {
+                        let mut handle = file.take(bytes as u64);
+                        let mut buffer = vec![0; bytes];
+                        let bytes_read = handle.read(&mut buffer)?;
 
-                            if bytes < bytes_read || bytes_read == 0 {
-                                break;
-                            } else {
-                                bytes -= bytes_read;
-                            }
-                        }
+                        print!(
+                            "{}",
+                            String::from_utf8_lossy(&buffer[..bytes_read])
+                        );
                     },
                     None => {
                         for _ in 0..config.lines {
