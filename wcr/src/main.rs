@@ -36,8 +36,9 @@ fn main() {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
                 let mut reader = BufReader::new(file);
-                let mut line_count: u32 = 0;
+                let mut line_count: usize = 0;
                 let mut words_count: usize = 0;
+                let mut byte_count: usize = 0;
 
                 loop {
                     let mut str: String = String::new();
@@ -52,10 +53,11 @@ fn main() {
                             let iter = str.split_whitespace();
                             words_count += iter.count();
                             line_count += 1;
+                            byte_count += byte;
                         }
                     }
                 }
-                println!("       {}      {} {}", line_count, words_count, filename);
+                println!("{:align$} {:align$} {:align$} {}", line_count, words_count, byte_count, filename, align = 7);
             }
         }
     });
