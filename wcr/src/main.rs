@@ -57,7 +57,15 @@ fn main() {
                         }
                     }
                 }
-                println!("{:align$} {:align$} {:align$} {}", line_count, words_count, byte_count, filename, align = 7);
+
+                println!(
+                    "{:>align$}{:>align$}{:>align$} {}",
+                    line_count,
+                    words_count,
+                    byte_count,
+                    filename,
+                    align = 8
+                );
             }
         }
     });
