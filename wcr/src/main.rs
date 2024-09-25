@@ -31,11 +31,16 @@ pub struct Args {
 
 fn main() {
     let args = Args::parse();
+
+    let mut total_line_count: usize = 0;
+    let mut total_words_count: usize = 0;
+    let mut total_byte_count: usize = 0;
+
     args.files.iter().for_each(|filename| {
         match File::open(filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
-                let mut reader = BufReader::new(file);
+                let mut reader: BufReader<File> = BufReader::new(file);
                 let mut line_count: usize = 0;
                 let mut words_count: usize = 0;
                 let mut byte_count: usize = 0;
@@ -58,6 +63,12 @@ fn main() {
                     }
                 }
 
+                if args.files.len() > 1 {
+                    total_line_count += line_count;
+                    total_words_count += words_count;
+                    total_byte_count += byte_count;
+                }
+
                 println!(
                     "{:>align$}{:>align$}{:>align$} {}",
                     line_count,
@@ -69,4 +80,14 @@ fn main() {
             }
         }
     });
+
+    if args.files.len() > 1 {
+        println!(
+            "{:>align$}{:>align$}{:>align$} total",
+            total_line_count,
+            total_words_count,
+            total_byte_count,
+            align = 8
+        )
+    }
 }
