@@ -33,7 +33,7 @@ fn main() {
     let args = Args::parse();
 
     let mut total_line_count: usize = 0;
-    let mut total_words_count: usize = 0;
+    let mut total_word_count: usize = 0;
     let mut total_byte_count: usize = 0;
 
     args.files.iter().for_each(|filename| {
@@ -42,7 +42,7 @@ fn main() {
             Ok(file) => {
                 let mut reader: BufReader<File> = BufReader::new(file);
                 let mut line_count: usize = 0;
-                let mut words_count: usize = 0;
+                let mut word_count: usize = 0;
                 let mut byte_count: usize = 0;
 
                 loop {
@@ -56,7 +56,7 @@ fn main() {
                                 break;
                             }
                             let iter = str.split_whitespace();
-                            words_count += iter.count();
+                            word_count += iter.count();
                             line_count += 1;
                             byte_count += byte;
                         }
@@ -65,29 +65,40 @@ fn main() {
 
                 if args.files.len() > 1 {
                     total_line_count += line_count;
-                    total_words_count += words_count;
+                    total_word_count += word_count;
                     total_byte_count += byte_count;
                 }
 
-                println!(
-                    "{:>align$}{:>align$}{:>align$} {}",
-                    line_count,
-                    words_count,
-                    byte_count,
-                    filename,
-                    align = 8
-                );
+                output_result(&args, line_count, word_count, byte_count);
+                println!(" {}", filename);
             }
         }
     });
 
     if args.files.len() > 1 {
-        println!(
-            "{:>align$}{:>align$}{:>align$} total",
-            total_line_count,
-            total_words_count,
-            total_byte_count,
+        output_result(&args, total_line_count, total_word_count, total_byte_count);
+        println!(" total");
+    }
+}
+
+fn output_result(args: &Args, line_count: usize, word_count: usize, byte_count: usize) {
+    if !args.lines && !args.words && !args.bytes {
+        print!(
+            "{:>align$}{:>align$}{:>align$}",
+            line_count,
+            word_count,
+            byte_count,
             align = 8
         )
+    } else {
+        if args.lines {
+            print!("{:>align$}", line_count, align = 8);
+        }
+        if args.words {
+            print!("{:>align$}", word_count, align = 8);
+        }
+        if args.bytes {
+            print!("{:>align$}", byte_count, align = 8);
+        }
     }
 }
