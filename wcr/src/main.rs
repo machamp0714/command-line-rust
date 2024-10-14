@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::{fs::File, io::BufReader};
-use std::io::BufRead;
+use std::io;
+use std::io::{Read, BufRead};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -37,10 +38,10 @@ fn main() {
     let mut total_byte_count: usize = 0;
 
     args.files.iter().for_each(|filename| {
-        match File::open(filename) {
+        match read_file(filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
-                let mut reader: BufReader<File> = BufReader::new(file);
+                let mut reader = BufReader::new(file);
                 let mut line_count: usize = 0;
                 let mut word_count: usize = 0;
                 let mut byte_count: usize = 0;
@@ -70,7 +71,11 @@ fn main() {
                 }
 
                 output_result(&args, line_count, word_count, byte_count);
-                println!(" {}", filename);
+                if filename != "-" {
+                    println!(" {}", filename);
+                } else {
+                    println!();
+                }
             }
         }
     });
@@ -99,6 +104,15 @@ fn output_result(args: &Args, line_count: usize, word_count: usize, byte_count: 
         }
         if args.bytes {
             print!("{:>align$}", byte_count, align = 8);
+        }
+    }
+}
+
+fn read_file(filename: &str) -> io::Result<BufReader<Box<dyn Read>>> {
+    match filename {
+        "-" => Ok(BufReader::new(Box::new(io::stdin()))),
+        _ => {
+            Ok(BufReader::new(Box::new(File::open(filename)?)))
         }
     }
 }
